@@ -181,14 +181,20 @@ El reporte de cobertura queda en `target/site/jacoco/index.html`.
 
 ## 8. Compilación del informe LaTeX (criterio de piso)
 
-Cuando agregue su informe en `docs/`, documente aquí la cadena exacta. Por ejemplo:
+Para recompilar el informe PDF desde el código fuente `.tex` y sus referencias BibTeX, ejecute los siguientes comandos desde la terminal:
 
 ```bash
 cd docs
 pdflatex informe.tex
-bibtex   informe
+bibtex informe
 pdflatex informe.tex
 pdflatex informe.tex
 ```
 
-Motor: `pdflatex`. Bibliografía: `bibtex`. Pasadas mínimas: 3. Sin esta documentación, y sin que el PDF se regenere desde el `.tex` clonando el repositorio, la calificación es CERO.
+Motor: `pdflatex`
+
+Bibliografía: `bibtex`
+
+Pasadas requeridas: 3 pasadas obligatorias.
+
+Archivos adjuntos: Las fuentes consultadas se encuentran organizadas en `docs/referencias/`.

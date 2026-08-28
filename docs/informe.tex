@@ -1,0 +1,179 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{cite}
+
+\definecolor{codebg}{RGB}{245,247,250}
+\definecolor{codeframe}{RGB}{180,190,205}
+\definecolor{keywordcolor}{RGB}{0,90,180}
+\definecolor{stringcolor}{RGB}{160,40,40}
+\definecolor{commentcolor}{RGB}{100,110,120}
+\definecolor{azuluteq}{RGB}{0,70,160}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=azuluteq,
+    urlcolor=azuluteq,
+    citecolor=azuluteq
+}
+
+\lstdefinestyle{java}{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{keywordcolor}\bfseries,
+    stringstyle=\color{stringcolor},
+    commentstyle=\color{commentcolor}\itshape,
+    frame=single,
+    rulecolor=\color{codeframe},
+    breaklines=true,
+    breakatwhitespace=false,
+    showstringspaces=false,
+    tabsize=4,
+    columns=fullflexible,
+    morekeywords={public,class,private,protected,final,void,return,if,else,new,var,
+                  @RestController,@RequestMapping,@GetMapping,@PostMapping,@Valid,
+                  @PathVariable,@RequestParam,@PreAuthorize,@Service,@Repository}
+}
+\lstset{style=java}
+
+\lstdefinestyle{bash}{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    frame=single,
+    rulecolor=\color{codeframe},
+    breaklines=true,
+    showstringspaces=false,
+    columns=fullflexible
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small Aplicaciones Web --- 5to Nivel --- Paralelo A}
+\rhead{\small Examen Unidad IV --- Spring Boot 4.1.1}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+
+\begin{document}
+
+% ============================================================
+%  CARÁTULA
+% ============================================================
+\begin{titlepage}
+  \centering
+  \vspace*{0.5cm}
+  {\Large \textbf{UNIVERSIDAD TÉCNICA ESTATAL DE QUEVEDO}}\\[0.3cm]
+  {\large \textbf{FACULTAD DE CIENCIAS DE LA COMPUTACIÓN Y DISEÑO DIGITAL}}\\[0.2cm]
+  {\large \textbf{CARRERA DE INGENIERÍA DE SOFTWARE}}
+
+  \vspace{1.0cm}
+
+  {\small \textbf{APLICACIONES WEB [111] -- 5TO NIVEL -- PARALELO A}}\\[0.3cm]
+
+  {\small \textbf{TEMA:}}\\[0.3cm]
+  {\LARGE \textbf{Informe Técnico del Examen Unidad IV}}\\[0.2cm]
+  {\large \textbf{Modelo Vista Controlador y Servicios Web: API REST, Autenticación JWT y Consumo de APIs Externas}}
+
+  \vspace{1.2cm}
+
+  \begin{tabular}{ll}
+    \textbf{ESTUDIANTE:} & PANAMA MURILLO MOISES ANTONIO \\
+    \textbf{DOCENTE:}    & Dr. Gleiston Cicerón Guerrero Ulloa, Ph.D. \\
+    \textbf{REPOSICION:} & \url{https://github.com/MoisesPanama/biblioteca-u4-base} \\
+    \textbf{PERIODO:}    & 2026--2027 PPA
+  \end{tabular}
+
+  \vfill
+  {\normalsize Quevedo -- Ecuador \quad 2026}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introducción y Objetivos}
+
+El presente informe documenta la solución técnica desarrollada para el examen práctico de la \textbf{Unidad IV} en la asignatura Aplicaciones Web. El proyecto base \texttt{biblioteca-u4-base} fue adaptado para exponer una API RESTful robusta sobre \textbf{Java 25} y \textbf{Spring Boot 4.1.1}, aplicando los principios del estilo arquitectónico REST \cite{fielding2002principled}.
+
+Los objetivos implementados abarcan:
+\begin{itemize}[noitemsep]
+    \item Construcción de controladores RESTful con soporte de filtrado dinámico, paginación y envoltorio estandarizado \texttt{ApiResponse} \cite{pautasso2008restful}.
+    \item Seguridad \textit{stateless} mediante tokens JWT (\textit{JSON Web Token}) y control de acceso basado en roles para microservicios \cite{taibi2020architectural}.
+    \item Integración con la API externa OpenLibrary utilizando el patrón \textit{Cache-Aside} sobre Redis 8 y manejo uniforme de errores.
+    \item Pruebas de integración automatizadas utilizando Testcontainers 2.x con PostgreSQL 18.
+\end{itemize}
+
+\section{Matriz Tecnológica y Entorno}
+
+\begin{table}[H]
+\centering
+\caption{Componentes de software y versiones utilizadas.}
+\begin{tabular}{lll}
+\toprule
+\textbf{Componente} & \textbf{Versión} & \textbf{Función / Observación} \\
+\midrule
+Java & 25 (LTS) & Lenguaje base (SDK 25) \\
+Spring Boot & 4.1.1 & Framework principal (\texttt{spring-boot-starter-webmvc}) \\
+Spring Data JPA & 4.1.x & Persistencia y consultas dinámicas mediante Specifications \\
+Flyway & 12.4.0 & Migración de esquemas SQL (\texttt{V1}, \texttt{V2}, \texttt{V3}) \\
+PostgreSQL & 18 & Base de datos relacional en Docker \\
+Redis & 8 & Memoria caché (\textit{Cache-Aside}) \\
+Testcontainers & 2.0.5 & Entorno aislado para pruebas de integración \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Desarrollo Técnico}
+
+\subsection{B1. Endpoints REST y Envoltorio Estándar}
+Se implementó el controlador \texttt{LibroController} para gestionar las peticiones sobre los libros. La consulta \texttt{GET /api/v1/libros} acepta parámetros de filtrado (\texttt{titulo}, \texttt{categoriaId}, \texttt{anioDesde}) delegados a \texttt{LibroService.buscar(...)}. Los datos devueltos se envuelven en el objeto \texttt{ApiResponse} junto con la metadata de paginación \texttt{PageMeta}, siguiendo las recomendaciones de diseño en servicios RESTful \cite{pautasso2008restful}.
+
+\subsection{B2. Autenticación JWT y Seguridad por Roles}
+La autenticación se implementó de forma \textit{stateless}. La emisión de tokens se gestiona en \texttt{AuthController}, validando credenciales y retornando un JWT firmado con algoritmo HMAC-SHA \cite{taibi2020architectural}. El filtro \texttt{JwtAuthenticationFilter} intercepta cada solicitud para establecer el contexto de seguridad. La protección de endpoints se configuró con \texttt{@PreAuthorize("hasRole('ADMIN')")} para la creación de recursos (\texttt{POST /api/v1/libros}).
+
+\subsection{B3. API Externa con Cache-Aside y Manejo de Fallos}
+Se desarrolló el cliente HTTP \texttt{OpenLibraryClient} para consultar metadatos adicionales por ISBN. 
+\begin{itemize}
+    \item \textbf{Caché:} Se configuró el espacio de caché \texttt{openlibrary} con un TTL de 24 horas en Redis.
+    \item \textbf{Resiliencia:} Ante un código \texttt{404} del proveedor externo, los campos externos retornan \texttt{null} manteniendo la respuesta \texttt{200 OK} del libro local. Fallos de red o errores \texttt{5xx} lanzan una \texttt{ServicioExternoException}, mapeada automáticamente a un estado \texttt{502 Bad Gateway}.
+\end{itemize}
+
+\subsection{B4. Pruebas de Integración}
+En \texttt{LibroControllerIT} se implementaron pruebas automatizadas sobre la base de datos PostgreSQL en contenedor:
+\begin{enumerate}
+    \item Verificación del estado \texttt{200 OK} y estructura del envoltorio \texttt{ApiResponse} en el listado.
+    \item Comprobación del formato de error (\texttt{ProblemDetails}) al solicitar un recurso inexistente (\texttt{404 Not Found}).
+    \item Validación de respuesta \texttt{400 Bad Request} ante peticiones con cuerpo inválido.
+\end{enumerate}
+
+\section{Comandos de Compilación del Informe}
+
+Para dar cumplimiento al criterio de evaluación obligatorio, la cadena de compilación de este documento desde la terminal en el directorio \texttt{docs/} es la siguiente:
+
+\begin{lstlisting}[style=bash]
+cd docs
+pdflatex informe.tex
+bibtex informe
+pdflatex informe.tex
+pdflatex informe.tex
+\end{lstlisting}
+
+\section{Conclusiones}
+
+La realización de esta práctica permitió afianzar la arquitectura en capas con Spring Boot 4.1.1 y Java 25. Se verificó la importancia de utilizar convenciones REST puras \cite{fielding2002principled}, separación de responsabilidades en la autenticación JWT y desacoplamiento de servicios externos mediante el patrón caché \cite{pautasso2008restful, taibi2020architectural}.
+
+\bibliographystyle{ieeetr}
+\bibliography{referencias}
+
+\end{document}
