@@ -20,9 +20,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -81,6 +83,27 @@ public class LibroController {
         return ResponseEntity
                 .created(URI.create("/api/v1/libros/" + creado.getId()))
                 .body(ApiResponse.ok(cuerpo, "Libro creado"));
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<LibroResponse> obtenerPorId(@PathVariable Long id) {
+        Libro libro = servicio.buscarPorId(id);
+        return ApiResponse.ok(mapper.aRespuesta(libro), "Libro encontrado");
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<LibroResponse> actualizar(@PathVariable Long id,
+                                                 @Valid @RequestBody LibroRequest solicitud) {
+        Libro actualizado = servicio.actualizar(id, solicitud);
+        return ApiResponse.ok(mapper.aRespuesta(actualizado), "Libro actualizado");
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> desactivar(@PathVariable Long id) {
+        servicio.desactivar(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/enriquecido")
