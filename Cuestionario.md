@@ -12,11 +12,11 @@
 
 | Campo | Valor |
 |---|---|
-| Apellidos y nombres | |
-| Número de carnet | |
-| Correo institucional | |
-| Fecha | |
-| URL del repositorio | |
+| Apellidos y nombres | Panamá Murillo, Moisés Antonio |
+| Número de carnet | 1251334544 |
+| Correo institucional | mpanamam@uteq.edu.ec |
+| Fecha | 2026-08-28 |
+| URL del repositorio | https://github.com/MoisesPanama/Examen_U4_Panama_Moises.git |
 
 ---
 
@@ -140,6 +140,6 @@ Es un error de diseño porque rompe la **Interfaz Uniforme y Semántica de HTTP*
 
 Marque con una `x` y complete:
 
-- [ ] Declaro que estas respuestas son de mi autoría, redactadas durante la sesión de examen, sin asistencia de inteligencia artificial ni comunicación con terceros.
+- [x] Declaro que estas respuestas son de mi autoría, redactadas durante la sesión de examen, sin asistencia de inteligencia artificial ni comunicación con terceros.
 
-Firma (nombre completo): ______________________________
+Firma (nombre completo): Moisés Antonio Panamá Murillo
