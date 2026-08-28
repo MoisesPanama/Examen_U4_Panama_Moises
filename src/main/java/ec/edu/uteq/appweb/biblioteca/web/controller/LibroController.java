@@ -1,8 +1,12 @@
 package ec.edu.uteq.appweb.biblioteca.web.controller;
 
 import ec.edu.uteq.appweb.biblioteca.domain.Libro;
+import ec.edu.uteq.appweb.biblioteca.exception.ServicioExternoException;
+import ec.edu.uteq.appweb.biblioteca.integration.OpenLibraryClient;
+import ec.edu.uteq.appweb.biblioteca.integration.OpenLibraryResponse;
 import ec.edu.uteq.appweb.biblioteca.service.LibroService;
 import ec.edu.uteq.appweb.biblioteca.web.dto.ApiResponse;
+import ec.edu.uteq.appweb.biblioteca.web.dto.LibroEnriquecidoResponse;
 import ec.edu.uteq.appweb.biblioteca.web.dto.LibroRequest;
 import ec.edu.uteq.appweb.biblioteca.web.dto.LibroResponse;
 import ec.edu.uteq.appweb.biblioteca.web.dto.PageMeta;
@@ -10,12 +14,14 @@ import ec.edu.uteq.appweb.biblioteca.web.mapper.LibroMapper;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,10 +54,12 @@ public class LibroController {
 
     private final LibroService servicio;
     private final LibroMapper mapper;
+    private final OpenLibraryClient openLibraryClient;
 
-    public LibroController(LibroService servicio, LibroMapper mapper) {
+    public LibroController(LibroService servicio, LibroMapper mapper, OpenLibraryClient openLibraryClient) {
         this.servicio = servicio;
         this.mapper = mapper;
+        this.openLibraryClient = openLibraryClient;
     }
 
     @GetMapping
@@ -73,5 +81,27 @@ public class LibroController {
         return ResponseEntity
                 .created(URI.create("/api/v1/libros/" + creado.getId()))
                 .body(ApiResponse.ok(cuerpo, "Libro creado"));
+    }
+
+    @GetMapping("/{id}/enriquecido")
+    public ApiResponse<LibroEnriquecidoResponse> enriquecido(@PathVariable Long id) {
+        Libro libro = servicio.buscarPorId(id);
+        LibroResponse local = mapper.aRespuesta(libro);
+
+        Optional<OpenLibraryResponse> externo;
+        try {
+            externo = openLibraryClient.consultarPorIsbn(libro.getIsbn());
+        } catch (ServicioExternoException e) {
+            externo = Optional.empty();
+        }
+
+        LibroEnriquecidoResponse cuerpo = new LibroEnriquecidoResponse(
+                local,
+                externo.map(OpenLibraryResponse::title).orElse(null),
+                externo.map(OpenLibraryResponse::urlPortada).orElse(null),
+                externo.map(OpenLibraryResponse::number_of_pages).orElse(null),
+                externo.map(OpenLibraryResponse::publish_date).orElse(null));
+
+        return ApiResponse.ok(cuerpo, "Libro enriquecido");
     }
 }
